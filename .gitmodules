@@ -1,0 +1,3 @@
+[submodule "packages/my_cpp_pkg"]
+	path = packages/my_cpp_pkg
+	url = git@github.com:saratrajput/my_cpp_pkg.git
