@@ -394,3 +394,110 @@ ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts "{a: 3, b: 4}"
 ```
 
 * A future object is a value which maybe set in the future.
+* Call is a synchronous call which will block until the response is given.
+* Not recommened by ROS team as it can wait forever.
+* call_async is recommended.
+
+
+* In CPP ROS Client
+If you call the function directly: the program starts -> we start the node
+-> we create the client -> we wait for service -> if we start the server on
+another terminal it passes -> we send the request -> we'll wait for the
+response at future.get (problem) -> This will block the thread here
+-> which means the function will not exit -> so the constructor will
+not exit -> so we'll still be in this line:
+"auto node = std::make_shared<AddTwoIntsClientNode>();" -> and spin(node)
+will not be executed. -> But we need spin(node) in order to get the result
+from the future.
+So we need to start this in a different thread so that we can continue the
+execution, and the constructor can exit and we can call spin on the node.
+So we create a thread object in private.
+
+### Debug Services with ROS2 Tools
+
+* ros2 service <list, call, find, type>
+
+* To see all the services for all the nodes in the graph
+```
+ros2 service list
+```
+The services listed other than the one you created are for the parameters.
+
+* With ros2 node info <node_name>, you can see the service along with its interface.
+
+* To see the interface
+```
+ros2 service type /add_two_ints
+```
+
+* To see details about the interface
+```
+ros2 interface show example_interfaces/srv/AddTwoInts
+```
+
+* To call the service
+```
+ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts "{a: 3, b: 5}"
+```
+
+* ROS2 Service Plugin for RQT
+![ros2 service plugin](images/ros2_service_plugin_rqt.png)
+A GUI to call services.
+![ros2 service caller](images/ros2_service_caller.png)
+
+You CANNOT see the services in the rqt-graph. Only the nodes.
+
+
+### Remap a Service at Runtime
+
+* You can have two services of similar kind but with different names
+```
+ros2 run my_cpp_pkg add_two_ints_server
+ros2 run my_cpp_pkg add_two_ints_server --ros-args -r add_two_ints:=new_name
+```
+
+* And for the client to request to that particular server
+```
+ros2 run my_py_pkg add_two_ints_client
+ros2 run my_py_pkg add_two_ints_client --ros-args -r add_two_ints:=new_name
+```
+
+
+### Experiment on Services with Turtlesim
+
+```
+ros2 run turtlesim turtlesim_node
+ros2 run turtlesim turtle_teleop_key
+ros2 service list
+```
+
+* To clear the line put by the turtle on the screen
+```
+ros2 service type /clear
+```
+to first check the type. (NOTE: Turtle sim is still using std_srvs which has been now
+replaced by example_interfaces in ROS2.)
+
+  * You can check the interface details
+    ```
+    ros2 interface show std_srvs/srv/Empty
+    ```
+* And then call the service
+```
+ros2 service call /clear std_srvs/srv/Empty
+```
+
+* You can reset the turtle by
+```
+ros2 service call /reset std_srvs/srv/Empty
+```
+
+* You can spawn another turtle
+```
+# Check service type
+ros2 service type /spawn # turtlesim/srv/Spawn
+# Check details about the interface
+ros2 interface show turtlesim/srv/Spawn
+# Call the service
+ros2 service call /spawn turtlesim/srv/Spawn "{x: 1.0, y: 3.0, theta: 20.0, name: "my_turtle"}
+```
