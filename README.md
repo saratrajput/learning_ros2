@@ -501,3 +501,532 @@ ros2 interface show turtlesim/srv/Spawn
 # Call the service
 ros2 service call /spawn turtlesim/srv/Spawn "{x: 1.0, y: 3.0, theta: 20.0, name: "my_turtle"}
 ```
+
+## ROS2 Interfaces
+With topics you've seen that all the nodes publishing to a topic must use the same
+data type. With services, you've seen that the clients must send a message respecting
+a certain data type. And the server must respond respecting another data-type.
+
+* Topic is defined by
+    * Name (ex: /number_count)
+    * Msg definition (ex: example_interfaces/msg/Int64)
+
+* Service is also defined by:
+    * Name (ex: /reset_number_count)
+    * Srv definition (ex: example_interfaces/srv/SetBool): One for the request and another
+for response.
+
+* Topics and Services can be seen as communication layer tools and Interfaces are messages
+  which are the actual content of the message.
+
+* When a msg definition is made inside a package -> Colcon build system builds it. -> And
+a souce code is generated for this message in any ROS2 supported language.
+![Building a Msg](images/building_msg_definition.png) 
+
+* Type of data-types that can be used to create a msg or service definition can be found
+at this [link](https://index.ros.org/doc/ros2/Concepts/About-ROS-Interfaces/).
+
+* [ROS2 Example Interfaces](https://github.com/ros2/example_interfaces)
+
+* [ROS2 Common Interfaces](https://github.com/ros2/common_interfaces)
+
+* Use msg primitive types to create a message definition.
+* You can create a message definition using other message definitions.
+
+### Create and Build Your First Custom Msg
+
+```
+# Inside your ~/ros2_ws/src folder
+ros2 pkg create my_robot_interfaces
+cd my_robot_interfaces
+
+# Delete the include and src folders as we don't need them
+rm -r include/ src/
+
+# Create msg folder
+mkdir msg
+
+# Configure package.xml and CMakeLists.txt
+# Add these 3 lines to your package.xml
+<build_depend>rosidl_default_generators</build_depend>
+<exec_depend>rosidl_default_runtim</exec_depend>
+<member_of_group>rosidl_interface_packages</member_of_group>
+
+# In your CMakeLists.txt:
+# Remove 3 lines under "# Default to C99"
+# And remove the lines from "if(BUILD_TESTING)" to "endif()"
+# As we don't need anything related to C++ here.
+# And add line
+find_package(rosidl_default_generators)
+
+# And to generate source code add
+rosidl_generate_interfaces(${PROJECT_NAME}
+    "msg/HardWareStatus.msg"
+)
+```
+
+* Use PascalCase when naming a msg.
+
+* Build msg package with
+```
+colcon build --packages-select my_robot_interfaces
+```
+
+* You can see the built msg at
+```
+~/ros2_ws/install/my_robot_interfaces/lib/python3.8/site-packages/my_robot_interfaces/msg
+```
+
+* And the hpp file can be found at
+```
+~/ros2_ws/install/my_robot_interfaces/include/my_robot_interfaces/msg
+```
+
+### Use Your Custom Msg in a Python Node
+If you're using autocompletion, you can add the following path to your Python path:
+```
+/home/sp/ros2_ws/install/my_robot_interfaces/lib/python3.8/site-packages/my_robot_interfaces
+```
+
+And add dependencies in your package.xml of your node.
+```
+<depend>my_robot_interfaces</depend>
+```
+
+### Create and Build Your First Custom Srv
+```
+cd /path/to/my_robot_interfaces/
+mkdir srv
+cd srv/
+touch ComputeRectangleArea.srv
+
+# After adding lines to the above file, add this line to your CMakelists.txt
+"srv/ComputeRectangleArea.srv"
+```
+And build the package with:
+```
+colcon build --packages-select my_robot_interfaces
+```
+
+You can see your interface with
+```
+ros2 interface show my_robot_interfaces/srv/ComputeRectangleArea
+```
+
+### Debug Msg and Srv With ROS2 Tools
+
+* See info about interfaces
+```
+ros2 interface show my_robot_interfaces/srv/ComputeRectangleArea
+```
+
+* List all available ROS2 interfaces
+```
+ros2 interface list
+```
+
+* To see all the msg and srv inside a package
+```
+ros2 interface package sensor_msgs
+```
+
+### Summary: How to Create a Custom Interface
+* Create a new package only for your msg and srv definitions.
+* Setup the package (CMakeLists.txt and package.xml)
+* Create a msg/ and srv/ folders, place your custom msg definitions and srv
+  definitions here.
+
+Once you've setup your package, adding a new interface is really simple:
+* Add a new file in the right folder: msg/ or srv/
+* Add one line into CMakeLists.txt
+* Compile with "colcon build"
+* And don't forget to source your ROS2 workspace when you want to use those
+  messages!
+
+Here's what you can use inside a msg or srv definition:
+* Any primitive type defined by ROS2 (most common ones: int64, float64, bool,
+  string, and array of those)
+* Any message you've already created in this package.
+* Any message from another package. In this case don't forget to add a
+  dependency for the other package in both package.xml and CMakeLists.txt.
+
+And now, when you compile the definitions, new interfaces will be created, along
+with headers/modules ready to be included in your C++ or Python nodes.
+
+
+## Change Node Settings at Runtime with ROS2 Parameters
+
+### What are ROS2 Parameters
+
+A ROS2 parameter is a configuration value for a node useful for any kind of
+setting at run time.
+
+![Ros2 Parameters](images/ros2_parameters.png)
+
+* Settings for your nodes, value set at run time.
+* A parameters is specific to a node.
+* ROS2 Parameter types:
+    * Boolean
+    * Int
+    * Double
+    * String
+    * Lists
+
+### Declare your parameters
+
+* List ROS2 parameters
+```
+ros2 param list
+```
+
+* There's a default parameter for every node: use_sim_time
+
+* Get the value of parameter
+```
+ros2 param get /number_publisher use_sim_time
+```
+
+* Each parameter is private to the node.
+
+* To declare parameter, declare it after initialization of the node:
+```
+self.declare_parameter("test123")
+```
+
+* To define a parameter directly from the command line
+```
+ros2 run my_py_pkg number_publisher --ros-args -p test123:=3
+# Output of ros param get: Integer value is: 3
+# The type is set dynamically
+ros2 run my_py_pkg number_publisher --ros-args -p test123:=3.13
+# Output of ros param get: Double value is: 3.13
+
+# Multiple parameters
+ros2 run my_py_pkg number_publisher --ros-args -p test123:="hello" -p another_param:="hi"
+```
+
+* Declare parameter in C++
+```
+this->declare_parameter("name");
+```
+
+### Get Parameters from a Python Node
+
+Inside a Python node:
+```
+class NumberPublisherNode(Node):
+    def __init__(self):
+        super().__init__("number_publisher")
+        self.declare_parameter("number_to_publish")
+
+        self.number_ = self.get_parameter("number_to_publish").value
+        ...
+```
+
+And launch it with:
+```
+ros2 run my_py_pkg number_publisher --ros-args -p number_to_publish:=4
+```
+
+* In this case, if you don't set the parameter it'll run into an error as the
+  number to publish needs to be set before running the node. To avoid this you
+can set a default value.
+```
+self.declare_parameter("number_to_publish", 2)
+```
+
+* You can also set publish frequency with parameters, and then check it with:
+```
+ros2 topic hz /number
+```
+
+### Get Parameters from a C++ Node
+
+Inside a C++ Node:
+```
+class NumberPublisherNode : public rclcpp::Node
+{
+public:
+    NumberPublisherNode() : Node("number_publisher")
+    {
+        this->declare_parameter("number_to_publish", 2);
+
+        number_ = this->get_parameter("number_to_publish").as_int();
+        // In C++ unlike Python, the type is not dynamically cast so we have to
+        // cast the type when getting the parameter.
+        ...
+```
+
+Then after building it, you can launch it similar to the Python node:
+```
+ros2 run my_cpp_pkg number_publisher --ros-args -p number_to_publish:=3 -p
+publish_frequency:=6.0
+```
+Here, you need to enter 6.0, as the type is cast dynamically to "int" if you
+enter only "6", when using ROS2 parameter. But inside the node you're trying to
+extract a double from the given parameter.
+
+If you don't declare the parameter and try to get it, then you'll get a
+ParameterNotDeclaredException error.
+
+* When passing a list as a parameter, leave no spaces between values
+```
+ros2 run my_py_pkg led_panel --ros-args -p led_states:=[1,1,1]
+```
+
+* You can also additional states
+```
+ros2 run my_py_pkg led_panel --ros-args -p led_states:=[1,1,1,0,0]
+```
+
+* If you want to have spaces in your string parameter
+```
+ros2 run my_py_pkg robot_news_station --ros-args -p robot_name:="giskard 2"
+```
+
+### Summary
+With parameters you don't need to modify + re-compile your code for each
+different set of configuration. Just write your code once, and choose your
+settings at run-time.
+
+Using parameters is one of the first steps to make your application more
+scalable.
+
+To handle parameters:
+* Don't forget to declare any parameter before you even try to use it!
+
+* When you run your node, set values for your parameters.
+
+* In your node's code, get the parameter's values and use them. You can also
+  define default values (best practice to avoid errors at run-time).
+
+
+## Scale Your Application with ROS2 Launch Files
+
+### What is a ROS2 Launch File
+![ROS2 Launch File](images/launch_file.png)
+
+### Create and Install a Launch File
+
+* Create a new ROS2 pkg
+```
+ros2 pkg create my_robot_bringup
+```
+The naming is a convention in ROS community, with <name_of_the_robot> followed
+by "bringup".
+If you don't specify a build-type, it'll automatically select ament-cmake build
+type.
+
+* Add these lines to your CMakeLists.txt
+```
+install(DIRECTORY
+    launch
+    DESTINATION share/${PROJECT_NAME}
+)
+```
+
+* Launch files are python files.
+```
+touch number_app.launch.py
+```
+
+* Make it an executable
+```
+chmod +x number_app.launch.py
+```
+
+* And add these lines
+```
+from launch import LaunchDescription
+
+# The name has to be exactly this because when you install the launch file the
+# launch functionality will create a new program which will look for a function
+# with this name to launch the application
+def generate_launch_description():
+    ld = LaunchDescription()
+    
+
+    return ld   
+```
+This is a minimal template for a launch file.
+
+* Build the package with launch file
+```
+colcon build --packages-select my_robot_bringup --symlink-install
+```
+
+* Execute the launch file
+```
+ros2 launch my_robot_bringup number_app.launch.py
+```
+
+* To add a node inside the launch file
+```
+ld = LaunchDescription()
+
+    number_publisher_node = Node(
+            package="my_py_pkg",
+            executable="number_publisher"
+    )
+  
+    counter_node = Node(
+            package="my_cpp_pkg",
+            executable="number_counter"
+    )
+  
+    ld.add_action(number_publisher_node)
+    ld.add_action(number_counter_node)
+    return ld
+```
+
+* And add "exec_depend" for those packages in the "package.xml" file.
+```
+<exec_depend>my_py_pkg</exec_depend>
+<exec_depend>my_cpp_pkg</exec_depend>
+```
+
+### Configure your nodes in a launch file
+```
+# You can declare a tuple which can be used with any node
+remap_number_topic = ("number", "my_number")
+
+number_publisher_node = Node(
+    package="my_py_pkg",
+    executable="number_publisher",
+    remappings=[
+        remap_number_topic,
+        #("number", "my_number") # This needs to be a tuple with the original
+        # name and the replacement name
+        ],
+        # Parameters need to be dictionary
+        parameters=[
+
+        ]
+    )
+```
+
+### Section Conclusion
+With a launch file, you can start your entire application with only one command
+line, in one terminal. You can add any number of nodes and fully configure them.
+That wil make your application fully customizable in no time.
+
+Setup for launch files:
+* Create a new package <robot_name>_bringup (best practice).
+* Create a launch/folder at the root of the package.
+* Configure CMakeLists.txt to install files from this launch/ folder.
+* Create any number of files you want inside the launch/ folder, ending with
+  .launch.py.
+
+Run a launch file:
+* After you've written your file, use "colcon build" to install the file.
+* Don't forget to source your environment.
+* Start the launch file with "ros2 launch <package> <name_of_the_file>
+
+## Final Project
+
+* Launch the turtlesim node
+```
+ros2 run turtlesim turtlesim_node
+```
+
+* Check the active topics
+```
+ros2 topic list
+```
+
+/turtle1/pose: Gives you the current position of the turtle
+
+* Create a new pkg
+```
+ros2 pkg create turtlesim_catch_them_all --build-type ament_python
+```
+
+* Create a node to control the turtle
+```
+touch turtle_controller.py
+chmod +x turtle_controller.py
+```
+
+* To compute distance between current pose and target pose, we compute the
+  euclid distance.
+```
+$ distance = \sqrt ((target_x - current_x)**2 + (target_y - current_y)**2) $
+
+* To calculate the angle we use the following:
+![compute angle](images/compute_angle.png)
+```
+
+## Save and Replay Topic Data with ROS2 Bags
+If you want to test your robot in real life with specific conditions and want to
+save the data in those specific conditions for testing later, you can use ROS2
+bags.
+
+* Start a publisher node
+```
+ros2 run my_py_pkg number_publisher
+```
+
+* Create a directory where you want to save the data
+```
+mkdir bags
+cd bags/
+```
+
+* Record the topic data
+```
+ros2 bag record /number
+```
+Once you exit, a file with the name of current date and time is saved.
+
+* To specify filename
+```
+ros2 bag record /number -o test
+```
+
+* To check the info for the saved file
+```
+ros2 bag info test/
+```
+
+* To replay the bag
+```
+ros2 bag play test
+```
+You can listen to the topic /number again although the original publisher is
+not actually running.
+You can also run the subscriber node.
+```
+ros2 topic echo /number
+ros2 run my_cpp_pkg number_counter
+```
+
+* You can record two topics with the same name
+```
+ros2 bag record /my_number /my_number_count -o test2
+```
+
+* To record all topics
+```
+ros2 bag record -a -o test3
+```
+
+### What you've learned
+* ROS2: what, how, when, why?
+* Install and configure ROS2
+* ROS2 Core concepts
+  * Packages
+  * Nodes
+  * Topics
+  * Services
+  * Interfaces (Msg and Srv)
+  * Parameters
+  * Launch files
+
+* In Python and C++
+* ROS2 Tools
+  * ros2 cli
+  * rqt(graph, srv, topic,..)
+  * Build system
+
+* Complete project with Turtlesim
+* Best Practices
