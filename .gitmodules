@@ -4,3 +4,12 @@
 [submodule "packages/my_py_pkg"]
 	path = packages/my_py_pkg
 	url = git@github.com:saratrajput/my_py_pkg.git
+[submodule "packages/my_robot_interfaces"]
+	path = packages/my_robot_interfaces
+	url = git@github.com:saratrajput/my_robot_interfaces.git
+[submodule "packages/my_robot_bringup"]
+	path = packages/my_robot_bringup
+	url = git@github.com:saratrajput/my_robot_bringup.git
+[submodule "packages/turtlesim_catch_them_all"]
+	path = packages/turtlesim_catch_them_all
+	url = git@github.com:saratrajput/turtlesim_catch_them_all.git
