@@ -1,7 +1,19 @@
 # ROS2 For Beginners
+This repo contains my notes and code for the [ROS2 For Beginners (ROS Foxy - 2021)](https://www.udemy.com/share/103tOUAEcadVxQR3Q=/) on Udemy.
+
+Final project of the course with turtlesim using a P controller. Code can be found in ```packages/turtlesim_catch_them_all``` submodule.
+
+![Turtlesim Catch Them All](images/turtlesim_project_ros2.gif)
 
 ## Requirements
 * Ubuntu 20
+
+You can try to install on Windows and Mac too.
+
+Clone this repository:
+```
+git clone --recurse-submodules git@github.com:saratrajput/learning_ros2.git
+```
 
 ## Instructions
 
