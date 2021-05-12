@@ -1076,3 +1076,6 @@ ros2 bag record -a -o test3
 
 * Complete project with Turtlesim
 * Best Practices
+
+## Troubleshooting
+* [Installing Gazebo11 with ROS2](https://stackoverflow.com/questions/67302265/gazebo-11-does-not-run/67497644#67497644)
