@@ -61,7 +61,7 @@ ros2 run demo_nodes_cpp talker
 
 ```
 source /opt/ros/foxy/setup.bash
-ros2 run demo_nodes_cpp talker
+ros2 run demo_nodes_py listener
 ```
 
 ### Install ROS2 Build tool - Colcon
