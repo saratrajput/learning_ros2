@@ -15,6 +15,40 @@ Clone this repository:
 git clone --recurse-submodules git@github.com:saratrajput/learning_ros2.git
 ```
 
+## ROS2 with Anaconda
+In case you have installed Anaconda too and are having problems running the examples:
+* Then first deactivate the base Anaconda environment.
+```
+conda deactivate
+```
+Your terminal should change from:
+```
+(base)user@pc-name:~$
+```
+to:
+```
+user@pc-name:~$
+```
+
+
+* Delete **build**, **install** and **log** directory from your ROS2 Workspace
+```
+cd ros2_ws/
+rm -r build/ install/ log/
+```
+
+* Build all the packages again:
+```
+colcon build --symlink-install
+```
+
+* Launch final project launch file to make sure everything is running fine.
+```
+ros2 launch my_robot_bringup turtlesim_catch_them_all.launch.py
+```
+If the turtle is catching other turtles and the behaviour is similar to the GIF shown above, then everything is running fine.
+
+
 ## Instructions
 
 * Install the latest ROS2 distribution with LTS. Find the distributions
