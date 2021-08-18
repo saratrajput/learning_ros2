@@ -1,4 +1,8 @@
 # ROS2 For Beginners
+:warning: This repo and all its submodules will soon be merged with my_learnings repos at https://github.com/saratrajput/my_learnings.
+After which this repo will be deleted.
+
+
 This repo contains my notes and code for the [ROS2 For Beginners (ROS Foxy - 2021)](https://www.udemy.com/share/103tOUAEcadVxQR3Q=/) on Udemy.
 
 Final project of the course with turtlesim using a P controller. Code can be found in ```packages/turtlesim_catch_them_all``` submodule.
